@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Comprehensive Medical & Pharmacy Calculator Dashboard">
+    <meta name="theme-color" content="#1e40af">
+    <title>MedCalc Pro - Medical Calculator Dashboard</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loader"></div>
+        <p>Loading MedCalc Pro...</p>
+    </div>
+
+    <!-- Auth Section -->
+    <div id="auth-section" class="auth-section hidden">
+        <div class="auth-container">
+            <div class="auth-logo">
+                <i class="fas fa-heartbeat"></i>
+                <h1>MedCalc Pro</h1>
+                <p>Professional Medical Calculator Dashboard</p>
+            </div>
+
+            <!-- Login Form -->
+            <div id="login-form" class="auth-form">
+                <h2>Login</h2>
+                <form onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label><i class="fas fa-envelope"></i> Email</label>
+                        <input type="email" id="login-email" required placeholder="doctor@hospital.com">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-lock"></i> Password</label>
+                        <input type="password" id="login-password" required placeholder="••••••••">
+                    </div>
+                    <div class="form-group">
+                        <label class="remember-me">
+                            <input type="checkbox" id="remember-me"> Remember me
+                        </label>
+                    </div>
+                    <button type="submit" class="btn-primary">Login</button>
+                </form>
+                <p class="auth-switch">Don't have an account? <a href="#" onclick="showRegister()">Register</a></p>
+            </div>
+
+            <!-- Register Form -->
+            <div id="register-form" class="auth-form hidden">
+                <h2>Register</h2>
+                <form onsubmit="handleRegister(event)">
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> Full Name</label>
+                        <input type="text" id="register-name" required placeholder="Dr. Ahmed Khan">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-envelope"></i> Email</label>
+                        <input type="email" id="register-email" required placeholder="doctor@hospital.com">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-user-md"></i> Role</label>
+                        <select id="register-role" required>
+                            <option value="">Select Role</option>
+                            <option value="doctor">Doctor</option>
+                            <option value="pharmacist">Pharmacist</option>
+                            <option value="nurse">Nurse</option>
+                            <option value="intern">Intern/Student</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-hospital"></i> Department</label>
+                        <select id="register-department" required>
+                            <option value="">Select Department</option>
+                            <option value="general">General Medicine</option>
+                            <option value="er">Emergency (ER)</option>
+                            <option value="icu">ICU</option>
+                            <option value="peds">Pediatrics</option>
+                            <option value="cardio">Cardiology</option>
+                            <option value="nephro">Nephrology</option>
+                            <option value="pharmacy">Pharmacy</option>
+                            <option value="surgery">Surgery</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-lock"></i> Password</label>
+                        <input type="password" id="register-password" required placeholder="••••••••" minlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-lock"></i> Confirm Password</label>
+                        <input type="password" id="register-confirm" required placeholder="••••••••" minlength="6">
+                    </div>
+                    <button type="submit" class="btn-primary">Register</button>
+                </form>
+                <p class="auth-switch">Already have an account? <a href="#" onclick="showLogin()">Login</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="main-app" class="main-app hidden">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-left">
+                <button class="menu-toggle" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="logo">
+                    <i class="fas fa-heartbeat"></i>
+                    <span>MedCalc Pro</span>
+                </div>
+            </div>
+            <div class="header-center">
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="global-search" placeholder="Search calculators, drugs, protocols..." oninput="globalSearch(this.value)">
+                </div>
+            </div>
+            <div class="header-right">
+                <button class="header-icon" onclick="toggleNotifications()" title="Notifications">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge" id="notification-count">3</span>
+                </button>
+                <button class="header-icon" onclick="toggleTheme()" title="Toggle Theme">
+                    <i class="fas fa-moon" id="theme-icon"></i>
+                </button>
+                <div class="user-menu" onclick="toggleUserMenu()">
+                    <img src="https://ui-avatars.com/api/?name=User&background=1e40af&color=fff" alt="User" class="user-avatar">
+                    <span id="user-name">User</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- Notification Dropdown -->
+        <div id="notification-panel" class="notification-panel hidden">
+            <div class="notification-header">
+                <h3>Notifications</h3>
+                <button onclick="clearNotifications()">Clear All</button>
+            </div>
+            <div class="notification-list" id="notification-list">
+                <div class="notification-item warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <strong>Drug Interaction Alert</strong>
+                        <p>Warfarin + Aspirin - High risk detected</p>
+                        <small>2 minutes ago</small>
+                    </div>
+                </div>
+                <div class="notification-item info">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <strong>New Calculator Added</strong>
+                        <p>SOFA Score Calculator is now available</p>
+                        <small>1 hour ago</small>
+                    </div>
+                </div>
+                <div class="notification-item success">
+                    <i class="fas fa-check-circle"></i>
+                    <div>
+                        <strong>PDF Uploaded Successfully</strong>
+                        <p>Hospital Formulary 2024.pdf</p>
+                        <small>3 hours ago</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Menu Dropdown -->
+        <div id="user-menu-panel" class="user-menu-panel hidden">
+            <div class="user-info">
+                <img src="https://ui-avatars.com/api/?name=User&background=1e40af&color=fff" alt="User">
+                <div>
+                    <strong id="menu-user-name">User</strong>
+                    <small id="menu-user-role">Doctor</small>
+                </div>
+            </div>
+            <div class="menu-divider"></div>
+            <a href="#" onclick="showProfile()"><i class="fas fa-user"></i> Profile</a>
+            <a href="#" onclick="showSettings()"><i class="fas fa-cog"></i> Settings</a>
+            <a href="#" onclick="showActivity()"><i class="fas fa-history"></i> Activity Log</a>
+            <div class="menu-divider"></div>
+            <a href="#" onclick="handleLogout()" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" onclick="showSection('dashboard')">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </a>
+                
+                <div class="nav-section">CALCULATORS</div>
+                
+                <a href="#" class="nav-item" onclick="showSection('general')">
+                    <i class="fas fa-calculator"></i>
+                    <span>General Medicine</span>
+                </a>
+                
+                <a href="#" class="nav-item" onclick="showSection('er')">
+                    <i class="fas fa-ambulance"></i>
+                    <span>Emergency (ER)</span>
+                    <span class="badge-red">HOT</span>
+                </a>
+                
+                <a href="#" class="nav-item" onclick="showSection('icu')">
+                    <i class="fas fa-procedures"></i>
+                    <span>ICU</span>
+                </a>
+                
+                <a href="#" class="nav-item" onclick="showSection('peds')">
+                    <i class="fas fa-baby"></i>
+                    <span>Pediatrics</span>
+                </a>
+                
+                <a href="#" class="nav-item" onclick="showSection('cardio')">
+                    <i class="fas fa-heartbeat"></i>
+                    <span>Cardiology</span>
+                </a>
+                
+                <a href="#" class="nav-item" onclick="showSection('nephro')">
+                    <i class="fas fa-kidneys"></i>
+                    <span>Nephrology</span>
+                </a>
+                
+                <a href="#" class="nav-item" onclick="showSection('pharmacy')">
+                    <i class="fas fa-pills"></i>
+                    <span>Pharmacy</span>
+                    <span class="badge-blue">NEW</span>
+                </a>
+                
+                <div class="nav-section">TOOLS</div>
+                
+                <a href="#" class="nav-item" onclick="showSection('interactions')">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Drug Interactions</span>
+                </a>
+                
+                <a href="#" class="nav-item" onclick="showSection('pdfs')">
+                    <i class="fas fa-file-pdf"></i>
+                    <span>PDF Library</span>
+                </a>
+                
+                <a href="#" class="nav-item" onclick="showSection('favorites')">
+                    <i class="fas fa-star"></i>
+                    <span>Favorites</span>
+                </a>
+                
+                <a href="#" class="nav-item" onclick="showSection('history')">
+                    <i class="fas fa-history"></i>
+                    <span>History</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <button class="btn-emergency" onclick="showEmergency()">
+                    <i class="fas fa-exclamation-circle"></i>
+                    EMERGENCY
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Section -->
+            <section id="section-dashboard" class="content-section active">
+                <div class="section-header">
+                    <h1>Dashboard</h1>
+                    <p>Welcome back, <span id="dashboard-user-name">User</span>!</p>
+                </div>
+
+                <!-- Quick Access Cards -->
+                <div class="quick-access">
+                    <div class="quick-card er" onclick="showSection('er')">
+                        <i class="fas fa-ambulance"></i>
+                        <h3>Emergency</h3>
+                        <p>ACLS, Burns, Trauma</p>
+                    </div>
+                    <div class="quick-card icu" onclick="showSection('icu')">
+                        <i class="fas fa-procedures"></i>
+                        <h3>ICU</h3>
+                        <p>Ventilator, Vasopressors</p>
+                    </div>
+                    <div class="quick-card peds" onclick="showSection('peds')">
+                        <i class="fas fa-baby"></i>
+                        <h3>Pediatrics</h3>
+                        <p>Weight-based Dosing</p>
+                    </div>
+                    <div class="quick-card pharmacy" onclick="showSection('pharmacy')">
+                        <i class="fas fa-pills"></i>
+                        <h3>Pharmacy</h3>
+                        <p>Drug Dosing & IV Calc</p>
+                    </div>
+                </div>
+
+                <!-- Favorites -->
+                <div class="dashboard-section">
+                    <h2><i class="fas fa-star"></i> Favorite Calculators</h2>
+                    <div class="calculator-grid" id="favorites-grid">
+                        <div class="calc-card" onclick="openCalculator('crcl')">
+                            <div class="calc-icon"><i class="fas fa-kidneys"></i></div>
+                            <h3>Creatinine Clearance</h3>
+                            <p>Cockcroft-Gault Formula</p>
+                        </div>
+                        <div class="calc-card" onclick="openCalculator('bmi')">
+                            <div class="calc-icon"><i class="fas fa-weight"></i></div>
+                            <h3>BMI Calculator</h3>
+                            <p>Body Mass Index</p>
+                        </div>
+                        <div class="calc-card" onclick="openCalculator('vanc')">
+                            <div class="calc-icon"><i class="fas fa-syringe"></i></div>
+                            <h3>Vancomycin Dosing</h3>
+                            <p>AUC-based Protocol</p>
+                        </div>
+                        <div class="calc-card" onclick="openCalculator('drip')">
+                            <div class="calc-icon"><i class="fas fa-tint"></i></div>
+                            <h3>IV Drip Rate</h3>
+                            <p>Infusion Calculator</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Calculations -->
+                <div class="dashboard-section">
+                    <h2><i class="fas fa-history"></i> Recent Calculations</h2>
+                    <div class="recent-list" id="recent-calculations">
+                        <div class="recent-item">
+                            <i class="fas fa-calculator"></i>
+                            <div class="recent-info">
+                                <strong>BMI Calculator</strong>
+                                <p>Result: 24.5 kg/m² (Normal weight)</p>
+                            </div>
+                            <small>2 minutes ago</small>
+                        </div>
+                        <div class="recent-item">
+                            <i class="fas fa-kidneys"></i>
+                            <div class="recent-info">
+                                <strong>Creatinine Clearance</strong>
+                                <p>Result: 65 mL/min</p>
+                            </div>
+                            <small>1 hour ago</small>
+                        </div>
+                        <div class="recent-item">
+                            <i class="fas fa-syringe"></i>
+                            <div class="recent-info">
+                                <strong>Vancomycin Dosing</strong>
+                                <p>Dose: 1250 mg Q12H</p>
+                            </div>
+                            <small>3 hours ago</small>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- General Medicine Section -->
+            <section id="section-general" class="content-section">
+                <div class="section-header">
+                    <h1><i class="fas fa-calculator"></i> General Medicine Calculators</h1>
+                    <p>Essential medical calculations for daily practice</p>
+                </div>
+
+                <div class="calculator-grid">
+                    <div class="calc-card" onclick="openCalculator('bmi')">
+                        <div class="calc-icon"><i class="fas fa-weight"></i></div>
+                        <h3>BMI Calculator</h3>
+                        <p>Body Mass Index</p>
+                        <button class="calc-favorite" onclick="event.stopPropagation(); toggleFavorite('bmi')">
+                            <i class="far fa-star"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="calc-card" onclick="openCalculator('bsa')">
+                        <div class="calc-icon"><i class="fas fa-user"></i></div>
+                        <h3>BSA Calculator</h3>
+                        <p>Body Surface Area</p>
+                        <button class="calc-favorite" onclick="event.stopPropagation(); toggleFavorite('bsa')">
+                            <i class="far fa-star"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="calc-card" onclick="openCalculator('ibw')">
+                        <div class="calc-icon"><i class="fas fa-balance-scale"></i></div>
+                        <h3>Ideal Body Weight</h3>
+                        <p>IBW Calculation</p>
+                        <button class="calc-favorite" onclick="event.stopPropagation(); toggleFavorite('ibw')">
+                            <i class="far fa-star"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="calc-card" onclick="openCalculator('map')">
+                        <div class="calc-icon"><i class="fas fa-heartbeat"></i></div>
+                        <h3>Mean Arterial Pressure</h3>
+                        <p>MAP Calculator</p>
+                        <button class="calc-favorite" onclick="event.stopPropagation(); toggleFavorite('map')">
+                            <i class="far fa-star"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="calc-card" onclick="openCalculator('corrected-calcium')">
+                        <div class="calc-icon"><i class="fas fa-flask"></i></div>
+                        <h3>Corrected Calcium</h3>
+                        <p>Albumin-adjusted Ca</p>
+                        <button class="calc-favorite" onclick="event.stopPropagation(); toggleFavorite('corrected-calcium')">
+                            <i class="far fa-star"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="calc-card" onclick="openCalculator('anion-gap')">
+                        <div class="calc-icon"><i class="fas fa-vial"></i></div>
+                        <h3>Anion Gap</h3>
+                        <p>Electrolyte calculation</p>
+                        <button class="calc-favorite" onclick="event.stopPropagation(); toggleFavorite('anion-gap')">
+                            <i class="far fa-star"></i>
+                        </button>
+                    </div>
+
+                    <div class="calc-card" onclick="openCalculator('gcs')">
+                        <div class="calc-icon"><i class="fas fa-brain"></i></div>
+                        <h3>Glasgow Coma Scale</h3>
+                        <p>GCS Assessment</p>
+                        <button class="calc-favorite" onclick="event.stopPropagation(); toggleFavorite('gcs')">
+                            <i class="far fa-star"></i>
+                        </button>
+                    </div>
+
+                    <div class="calc-card" onclick="openCalculator('corrected-sodium')">
+                        <div class="calc-icon"><i class="fas fa-tint"></i></div>
+                        <h3>Corrected Sodium</h3>
+                        <p>For Hyperglycemia</p>
+                        <button class="calc-favorite" onclick="event.stopPropagation(); toggleFavorite('corrected-sodium')">
+                            <i class="far fa-star"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Nephrology Section -->
+            <section id="section-nephro" class="content-section">
+                <div class="section-header">
+                    <h1><i class="fas fa-kidneys"></i> Nephrology Calculators</h1>
+                    <p>Renal function and dosing adjustments</p>
+                </div>
+
+                <div class="calculator-grid">
+                    <div class="calc-card featured" onclick="openCalculator('crcl')">
+                        <div class="calc-icon"><i class="fas fa-kidneys"></i></div>
+                        <h3>Creatinine Clearance</h3>
+                        <p>Cockcroft-Gault Formula</p>
+                        <span class="badge-featured">Most Used</span>
+                        <button class="calc-favorite" onclick="event.stopPropagation(); toggleFavorite('crcl')">
+                            <i class="far fa-star"></i>
+                        </button>
+                    </div>
+
+                    <div class="calc-card" onclick="openCalculator('egfr')">
+                        <div class="calc-icon"><i class="fas fa-chart-line"></i></div>
+                        <h3>eGFR Calculator</h3>
+                        <p>CKD-EPI & MDRD</p>
+                        <button class="calc-favorite" onclick="event.stopPropagation(); toggleFavorite('egfr')">
+                            <i class="far fa-star"></i>
+                        </button>
+                    </div>
+
+                    <div class="calc-card" onclick="openCalculator('fena')">
+                        <div class="calc-icon"><i class="fas fa-percentage"></i></div>
+                        <h3>Fractional Excretion Na</h3>
+                        <p>FeNa Calculator</p>
+                        <button class="calc-favorite" onclick="event.stopPropagation(); toggleFavorite('fena')">
+                            <i class="far fa-star"></i>
+                        </button>
+                    </div>
+
+                    <div class="calc-card" onclick="openCalculator('renal-dose')">
+                        <div class="calc-icon"><i class="fas fa-pills"></i></div>
+                        <h3>Renal Dose Adjustment</h3>
+                        <p>Drug dosing in renal impairment</p>
+                        <button class="calc-favorite" onclick="event.stopPropagation(); toggleFavorite('renal-dose')">
+                            <i class="far fa-star"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Emergency Section -->
+            <section id="section-er" class="content-section">
+                <div class="section-header emergency-header">
+                    <h1><i class="fas fa-ambulance"></i> Emergency Medicine</h1>
+                    <p>Critical care and emergency calculations</p>
+                </div>
+
+                <div class="calculator-grid">
+                    <div class="calc-card emergency" onclick="openCalculator('acls')">
+                        <div class="calc-icon"><i class="fas fa-heartbeat"></i></div>
+                        <h3>ACLS Drug Doses</h3>
+                        <p>Emergency cardiac drugs</p>
+                        <span class="badge-emergency">CRITICAL</span>
+                    </div>
+
+                    <div class="calc-card emergency" onclick="openCalculator('rsi')">
+                        <div class="calc-icon"><i class="fas fa-lungs"></i></div>
+                        <h3>RSI Calculator</h3>
+                        <p>Rapid Sequence Intubation</p>
+                    </div>
+
+                    <div class="calc-card emergency" onclick="openCalculator('burns')">
+                        <div class="calc-icon"><i class="fas fa-fire"></i></div>
+                        <h3>Burns Calculator</h3>
+                        <p>Parkland Formula</p>
+                    </div>
+
+                    <div class="calc-card emergency" onclick="openCalculator('shock-index')">
+                        <div class="calc-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                        <h3>Shock Index</h3>
+                        <p>HR/SBP Ratio</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ICU Section -->
+            <section id="section-icu" class="content-section">
+                <div class="section-header">
+                    <h1><i class="fas fa-procedures"></i> ICU Calculators</h1>
+                    <p>Intensive care scoring and management</p>
+                </div>
+
+                <div class="calculator-grid">
+                    <div class="calc-card" onclick="openCalculator('apache')">
+                        <div class="calc-icon"><i class="fas fa-chart-bar"></i></div>
+                        <h3>APACHE II Score</h3>
+                        <p>ICU severity scoring</p>
+                    </div>
+
+                    <div class="calc-card" onclick="openCalculator('sofa')">
+                        <div class="calc-icon"><i class="fas fa-hospital"></i></div>
+                        <h3>SOFA Score</h3>
+                        <p>Sequential Organ Failure</p>
+                    </div>
+
+                    <div class="calc-card" onclick="openCalculator('ventilator')">
+                        <div class="calc-icon"><i class="fas fa-wind"></i></div>
+                        <h3>Ventilator Settings</h3>
+                        <p>Tidal volume, PEEP, FiO2</p>
+                    </div>
+
+                    <div class="calc-card" onclick="openCalculator('vasopressor')">
+                        <div class="calc-icon"><i class="fas fa-syringe"></i></div>
+                        <h3>Vasopressor Dosing</h3>
+                        <p>Norepinephrine, Dopamine</p>
+                    </div>
+
+                    <div class="calc-card" onclick="openCalculator('sedation')">
+                        <div class="calc-icon"><i class="fas fa-bed"></i></div>
+                        <h3>Sedation Calculator</h3>
+                        <p>RASS, SAS scores</p>
+                    </div>
+
+                    <div class="calc-card" onclick="openCalculator('nutrition-icu')">
+                        <div class="calc-icon"><i class="fas fa-utensils"></i></div>
+                        <h3>ICU Nutrition</h3>
+                        <p>Caloric needs, TPN</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Pediatrics Section -->
+            <section id="section-peds" class="content-section">
+                <div class="section-header">
+                    <h1><i class="fas fa-baby"></i> Pediatrics Calculators</h1>
+                    <p>Pediatric dosing and assessments</p>
+                </div>
+
+                <div class="calculator-grid">
+                    <div class="calc-card peds" onclick="openCalculator('peds-dose')">
+                        <div class="calc-icon"><i class="fas fa-pills"></i></div>
+                        <h3>Weight-Based Dosing</h3>
+                        <p>Pediatric drug calculations</p>
+                    </div>
+
+                    <div class="calc-card peds" onclick="openCalculator('fluid-maintenance')">
+                        <div class="calc-icon"><i class="fas fa-tint"></i></div>
+                        <h3>Fluid Maintenance</h3>
+                        <p>Holliday-Segar Method</p>
+                    </div>
+
+                    <div class="calc-card peds" onclick="openCalculator('growth-chart')">
+                        <div class="calc-icon"><i class="fas fa-chart-line"></i></div>
+                        <h3>Growth Percentile</h3>
+                        <p>Height/Weight charts</p>
+                    </div>
+
+                    <div class="calc-card peds" onclick="openCalculator('apgar')">
+                        <div class="calc-icon"><i class="fas fa-baby-carriage"></i></div>
+                        <h3>Apgar Score</h3>
+                        <p>Newborn assessment</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Cardiology Section -->
+            <section id="section-cardio" class="content-section">
+                <div class="section-header">
+                    <h1><i class="fas fa-heartbeat"></i> Cardiology Calculators</h1>
+                    <p>Cardiac risk scores and calculations</p>
+                </div>
+
+                <div class="calculator-grid">
+                    <div class="calc-card" onclick="openCalculator('chadsvasc')">
+                        <div class="calc-icon"><i class="fas fa-heart"></i></div>
+                        <h3>CHA2DS2-VASc Score</h3>
+                        <p>Stroke risk in AF</p>
+                    </div>
+
+                    <div class="calc-card" onclick="openCalculator('hasbled')">
+                        <div class="calc-icon"><i class="fas fa-tint"></i></div>
+                        <h3>HAS-BLED Score</h3>
+                        <p>Bleeding risk</p>
+                    </div>
+
+                    <div class="calc-card" onclick="openCalculator('qtc')">
+                        <div class="calc-icon"><i class="fas fa-wave-square"></i></div>
+                        <h3>QTc Calculator</h3>
+                        <p>Corrected QT interval</p>
+                    </div>
+
+                    <div class="calc-card" onclick="openCalculator('timi')">
+                        <div class="calc-icon"><i class="fas fa-ambulance"></i></div>
+                        <h3>TIMI Risk Score</h3>
+                        <p>ACS risk stratification</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Pharmacy Section -->
+            <section id="section-pharmacy" class="content-section">
+                <div class="section-header">
+                    <h1><i class="fas fa-pills"></i> Pharmacy Calculators</h1>
+                    <p>Drug dosing, IV calculations & pharmacokinetics</p>
+                </div>
+
+                <div class="pharmacy-tabs">
+                    <button class="tab-btn active" onclick="showPharmacyTab('dosing')">Drug Dosing</button>
+                    <button class="tab-btn" onclick="showPharmacyTab('iv')">IV Calculations</button>
+                    <button class="tab-btn" onclick="showPharmacyTab('pk')">Pharmacokinetics</button>
+                    <button class="tab-btn" onclick="showPharmacyTab('compounding')">Compounding</button>
+                </div>
+
+                <div id="pharmacy-dosing" class="pharmacy-tab-content active">
+                    <div class="calculator-grid">
+                        <div class="calc-card" onclick="openCalculator('drug-dose')">
+                            <div class="calc-icon"><i class="fas fa-calculator"></i></div>
+                            <h3>Standard Dose Calculator</h3>
+                            <p>Calculate drug doses</p>
+                        </div>
+
+                        <div class="calc-card" onclick="openCalculator('renal-dose')">
+                            <div class="calc-icon"><i class="fas fa-kidneys"></i></div>
+                            <h3>Renal Dose Adjustment</h3>
+                            <p>CrCl-based dosing</p>
+                        </div>
+
+                        <div class="calc-card" onclick="openCalculator('hepatic-dose')">
+                            <div class="calc-icon"><i class="fas fa-liver"></i></div>
+                            <h3>Hepatic Dose Adjustment</h3>
+                            <p>Child-Pugh based</p>
+                        </div>
+
+                        <div class="calc-card" onclick="openCalculator('obesity-dose')">
+                            <div class="calc-icon"><i class="fas fa-weight"></i></div>
+                            <h3>Obesity Dosing</h3>
+                            <p>Adjusted body weight</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="pharmacy-iv" class="pharmacy-tab-content">
+                    <div class="calculator-grid">
+                        <div class="calc-card featured" onclick="openCalculator('drip')">
+                            <div class="calc-icon"><i class="fas fa-tint"></i></div>
+                            <h3>IV Drip Rate</h3>
+                            <p>Infusion rate calculator</p>
+                            <span class="badge-featured">Popular</span>
+                        </div>
+
+                        <div class="calc-card" onclick="openCalculator('concentration')">
+                            <div class="calc-icon"><i class="fas fa-flask"></i></div>
+                            <h3>Concentration Calculator</h3>
+                            <p>mg/mL calculations</p>
+                        </div>
+
+                        <div class="calc-card" onclick="openCalculator('dilution')">
+                            <div class="calc-icon"><i class="fas fa-fill-drip"></i></div>
+                            <h3>Dilution Calculator</h3>
+                            <p>C1V1 = C2V2</p>
+                        </div>
+
+                        <div class="calc-card" onclick="openCalculator('infusion-duration')">
+                            <div class="calc-icon"><i class="fas fa-clock"></i></div>
+                            <h3>Infusion Duration</h3>
+                            <p>Calculate infusion time</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="pharmacy-pk" class="pharmacy-tab-content">
+                    <div class="calculator-grid">
+                        <div class="calc-card" onclick="openCalculator('vanc')">
+                            <div class="calc-icon"><i class="fas fa-syringe"></i></div>
+                            <h3>Vancomycin Dosing</h3>
+                            <p>AUC-based protocol</p>
+                        </div>
+
+                        <div class="calc-card" onclick="openCalculator('aminoglycoside')">
+                            <div class="calc-icon"><i class="fas fa-vial"></i></div>
+                            <h3>Aminoglycoside Dosing</h3>
+                            <p>Hartford Nomogram</p>
+                        </div>
+
+                        <div class="calc-card" onclick="openCalculator('phenytoin')">
+                            <div class="calc-icon"><i class="fas fa-brain"></i></div>
+                            <h3>Phenytoin Correction</h3>
+                            <p>Adjusted for albumin</p>
+                        </div>
+
+                        <div class="calc-card" onclick="openCalculator('halflife')">
+                            <div class="calc-icon"><i class="fas fa-chart-line"></i></div>
+                            <h3>Half-Life Calculator</h3>
+                            <p>Elimination calculations</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="pharmacy-compounding" class="pharmacy-tab-content">
+                    <div class="calculator-grid">
+                        <div class="calc-card" onclick="openCalculator('alligation')">
+                            <div class="calc-icon"><i class="fas fa-balance-scale"></i></div>
+                            <h3>Alligation Calculator</h3>
+                            <p>Mixture calculations</p>
+                        </div>
+
+                        <div class="calc-card" onclick="openCalculator('percentage')">
+                            <div class="calc-icon"><i class="fas fa-percentage"></i></div>
+                            <h3>Percentage Strength</h3>
+                            <p>w/v, w/w, v/v</p>
+                        </div>
+
+                        <div class="calc-card" onclick="openCalculator('isotonicity')">
+                            <div class="calc-icon"><i class="fas fa-eye-dropper"></i></div>
+                            <h3>Isotonicity Calculator</h3>
+                            <p>Ophthalmic preparations</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Drug Interactions Section -->
+            <section id="section-interactions" class="content-section">
+                <div class="section-header">
+                    <h1><i class="fas fa-exclamation-triangle"></i> Drug Interaction Checker</h1>
+                    <p>Check for potential drug-drug interactions</p>
+                </div>
+
+                <div class="interaction-checker">
+                    <div class="drug-input-section">
+                        <h3>Enter Medications</h3>
+                        <div class="drug-input-wrapper">
+                            <input type="text" id="drug-search" placeholder="Search drug name..." oninput="searchDrug(this.value)">
+                            <button onclick="addDrugToCheck()"><i class="fas fa-plus"></i> Add</button>
+                        </div>
+                        <div id="drug-suggestions" class="drug-suggestions"></div>
+                        
+                        <div class="selected-drugs" id="selected-drugs">
+                            <div class="drug-tag">
+                                Warfarin
+                                <button onclick="removeDrug(this)"><i class="fas fa-times"></i></button>
+                            </div>
+                            <div class="drug-tag">
+                                Aspirin
+                                <button onclick="removeDrug(this)"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+
+                        <button class="btn-primary" onclick="checkInteractions()">
+                            <i class="fas fa-search"></i> Check Interactions
+                        </button>
+                    </div>
+
+                    <div class="interaction-results" id="interaction-results">
+                        <div class="interaction-item severe">
+                            <div class="interaction-header">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <h4>Warfarin + Aspirin</h4>
+                                <span class="severity-badge severe">MAJOR</span>
+                            </div>
+                            <p><strong>Risk:</strong> Increased bleeding risk</p>
+                            <p><strong>Mechanism:</strong> Both drugs affect coagulation; aspirin inhibits platelet aggregation while warfarin inhibits clotting factors.</p>
+                            <p><strong>Management:</strong> Monitor INR closely. Consider alternative antiplatelet if possible. Watch for signs of bleeding.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PDF Library Section -->
+            <section id="section-pdfs" class="content-section">
+                <div class="section-header">
+                    <h1><i class="fas fa-file-pdf"></i> PDF Library</h1>
+                    <p>Hospital formulary, protocols & guidelines</p>
+                </div>
+
+                <div class="pdf-upload-section" id="admin-upload">
+                    <button class="btn-primary" onclick="openUploadModal()">
+                        <i class="fas fa-upload"></i> Upload New PDF
+                    </button>
+                </div>
+
+                <div class="pdf-categories">
+                    <button class="category-btn active" onclick="filterPDFs('all')">All</button>
+                    <button class="category-btn" onclick="filterPDFs('formulary')">Formulary</button>
+                    <button class="category-btn" onclick="filterPDFs('protocols')">Protocols</button>
+                    <button class="category-btn" onclick="filterPDFs('guidelines')">Guidelines</button>
+                    <button class="category-btn" onclick="filterPDFs('interactions')">Drug Interactions</button>
+                </div>
+
+                <div class="pdf-grid" id="pdf-grid">
+                    <div class="pdf-card" data-category="formulary">
+                        <div class="pdf-icon"><i class="fas fa-file-pdf"></i></div>
+                        <h3>Hospital Formulary 2024</h3>
+                        <p>Complete drug list with dosing</p>
+                        <small>Updated: Jan 2024 • 245 pages</small>
+                        <div class="pdf-actions">
+                            <button onclick="viewPDF('formulary2024.pdf')"><i class="fas fa-eye"></i> View</button>
+                            <button onclick="downloadPDF('formulary2024.pdf')"><i class="fas fa-download"></i> Download</button>
+                        </div>
+                    </div>
+
+                    <div class="pdf-card" data-category="protocols">
+                        <div class="pdf-icon"><i class="fas fa-file-pdf"></i></div>
+                        <h3>Sepsis Management Protocol</h3>
+                        <p>ICU sepsis guidelines</p>
+                        <small>Updated: Dec 2023 • 18 pages</small>
+                        <div class="pdf-actions">
+                            <button onclick="viewPDF('sepsis-protocol.pdf')"><i class="fas fa-eye"></i> View</button>
+                            <button onclick="downloadPDF('sepsis-protocol.pdf')"><i class="fas fa-download"></i> Download</button>
+                        </div>
+                    </div>
+
+                    <div class="pdf-card" data-category="interactions">
+                        <div class="pdf-icon"><i class="fas fa-file-pdf"></i></div>
+                        <h3>Drug Interaction Tables</h3>
+                        <p>Major drug-drug interactions</p>
+                        <small>Updated: Nov 2023 • 52 pages</small>
+                        <div class="pdf-actions">
+                            <button onclick="viewPDF('interactions.pdf')"><i class="fas fa-eye"></i> View</button>
+                            <button onclick="downloadPDF('interactions.pdf')"><i class="fas fa-download"></i> Download</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Favorites Section -->
+            <section id="section-favorites" class="content-section">
+                <div class="section-header">
+                    <h1><i class="fas fa-star"></i> Favorite Calculators</h1>
+                    <p>Your saved calculators for quick access</p>
+                </div>
+
+                <div class="calculator-grid" id="all-favorites">
+                    <!-- Favorites will be populated from localStorage -->
+                </div>
+            </section>
+
+            <!-- History Section -->
+            <section id="section-history" class="content-section">
+                <div class="section-header">
+                    <h1><i class="fas fa-history"></i> Calculation History</h1>
+                    <p>Your recent calculations</p>
+                    <button class="btn-secondary" onclick="clearHistory()">
+                        <i class="fas fa-trash"></i> Clear History
+                    </button>
+                </div>
+
+                <div class="history-list" id="full-history">
+                    <!-- History will be populated from localStorage -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Calculator Modal -->
+    <div id="calculator-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Calculator</h2>
+                <button class="modal-close" onclick="closeCalculator()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="calculator-content">
+                <!-- Calculator forms will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- PDF Upload Modal -->
+    <div id="upload-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Upload PDF Document</h2>
+                <button class="modal-close" onclick="closeUploadModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="pdf-upload-form" onsubmit="handlePDFUpload(event)">
+                    <div class="form-group">
+                        <label>Document Title</label>
+                        <input type="text" id="pdf-title" required placeholder="e.g., Antibiotic Guidelines 2024">
+                    </div>
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="pdf-category" required>
+                            <option value="formulary">Formulary</option>
+                            <option value="protocols">Protocols</option>
+                            <option value="guidelines">Guidelines</option>
+                            <option value="interactions">Drug Interactions</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="pdf-description" rows="3" placeholder="Brief description of the document"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Upload PDF File</label>
+                        <input type="file" id="pdf-file" accept=".pdf" required>
+                    </div>
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-upload"></i> Upload
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Scripts -->
+    <script src="js/database.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/calculators.js"></script>
+    <script src="js/pharmacy.js"></script>
+    <script src="js/interactions.js"></script>
+    <script src="js/app.js"></script>
+    
+    <script>
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker registered'))
+                    .catch(err => console.log('Service Worker registration failed'));
+            });
+        }
+    </script>
+</body>
+</html>
