@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1e40af" />
+  <title>MedCalc Pro</title>
+
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="icons/favicon.ico" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div id="loading-screen" class="loading-screen">
+    <div class="loader"></div>
+    <p>Loading MedCalc Pro...</p>
+  </div>
+
+  <!-- AUTH -->
+  <div id="auth-section" class="auth-section hidden">
+    <div class="auth-container">
+      <div class="auth-logo">
+        <i class="fas fa-heartbeat"></i>
+        <h1>MedCalc Pro</h1>
+        <p>Medical & Pharmacy Calculator Dashboard</p>
+      </div>
+
+      <div id="login-form" class="auth-form">
+        <h2>Login</h2>
+        <form onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="login-email" required placeholder="admin@hospital.com" />
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="login-password" required placeholder="••••••••" />
+          </div>
+          <button type="submit" class="btn-primary">Login</button>
+        </form>
+        <p class="auth-switch">No account? <a href="#" onclick="showRegister()">Register</a></p>
+      </div>
+
+      <div id="register-form" class="auth-form hidden">
+        <h2>Register</h2>
+        <form onsubmit="handleRegister(event)">
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="register-name" required placeholder="Ayaz Ahmed" value="Ayaz Ahmed" />
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="register-email" required />
+          </div>
+          <div class="form-group">
+            <label>Role</label>
+            <select id="register-role" required>
+              <option value="doctor">Doctor</option>
+              <option value="pharmacist">Pharmacist</option>
+              <option value="nurse">Nurse</option>
+              <option value="intern">Intern/Student</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Department</label>
+            <select id="register-department" required>
+              <option value="general">General Medicine</option>
+              <option value="icu">ICU</option>
+              <option value="er">Emergency</option>
+              <option value="peds">Pediatrics</option>
+              <option value="pharmacy">Pharmacy</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="register-password" required minlength="6" />
+          </div>
+          <div class="form-group">
+            <label>Confirm Password</label>
+            <input type="password" id="register-confirm" required minlength="6" />
+          </div>
+          <button type="submit" class="btn-primary">Register</button>
+        </form>
+        <p class="auth-switch">Already have an account? <a href="#" onclick="showLogin()">Login</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="main-app" class="main-app hidden">
+    <header class="app-header">
+      <div class="header-left">
+        <button class="menu-toggle" onclick="toggleSidebar(event)">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="logo">
+          <i class="fas fa-heartbeat"></i>
+          <span>MedCalc Pro</span>
+        </div>
+      </div>
+
+      <div class="header-center">
+        <div class="search-bar">
+          <i class="fas fa-search"></i>
+          <input type="text" id="global-search" placeholder="Search calculators..." oninput="globalSearch(this.value)">
+        </div>
+      </div>
+
+      <div class="header-right">
+        <button class="header-icon" onclick="toggleNotifications(event)" title="Notifications">
+          <i class="fas fa-bell"></i>
+          <span class="badge" id="notification-count" style="display:none;">0</span>
+        </button>
+
+        <button class="header-icon" onclick="toggleTheme()" title="Theme">
+          <i class="fas fa-moon" id="theme-icon"></i>
+        </button>
+
+        <div class="user-menu" onclick="toggleUserMenu(event)">
+          <img class="user-avatar" src="https://ui-avatars.com/api/?name=User&background=1e40af&color=fff" alt="User">
+          <span id="user-name">User</span>
+          <i class="fas fa-chevron-down"></i>
+        </div>
+      </div>
+    </header>
+
+    <!-- notifications -->
+    <div id="notification-panel" class="notification-panel hidden">
+      <div class="notification-header">
+        <h3>Notifications</h3>
+        <button onclick="clearNotifications()">Clear All</button>
+      </div>
+      <div class="notification-list" id="notification-list">
+        <p style="text-align:center;color:#9ca3af;padding:1rem;">No notifications yet.</p>
+      </div>
+    </div>
+
+    <!-- user dropdown -->
+    <div id="user-menu-panel" class="user-menu-panel hidden">
+      <div class="user-info">
+        <img src="https://ui-avatars.com/api/?name=User&background=1e40af&color=fff" alt="User">
+        <div>
+          <strong id="menu-user-name">User</strong>
+          <small id="menu-user-role">Doctor</small>
+        </div>
+      </div>
+      <div class="menu-divider"></div>
+      <a href="#" onclick="showActivity()"><i class="fas fa-history"></i> History</a>
+      <a href="#" onclick="handleLogout()" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+
+    <!-- sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-item active" data-section="dashboard" onclick="showSection('dashboard', event)">
+          <i class="fas fa-th-large"></i><span>Dashboard</span>
+        </a>
+
+        <div class="nav-section">CALCULATORS</div>
+
+        <a href="#" class="nav-item" data-section="general" onclick="showSection('general', event)">
+          <i class="fas fa-calculator"></i><span>General Medicine</span>
+        </a>
+
+        <a href="#" class="nav-item" data-section="cardio" onclick="showSection('cardio', event)">
+          <i class="fas fa-heartbeat"></i><span>Cardiology</span>
+        </a>
+
+        <a href="#" class="nav-item" data-section="nephro" onclick="showSection('nephro', event)">
+          <i class="fas fa-kidneys"></i><span>Nephrology</span>
+        </a>
+
+        <a href="#" class="nav-item" data-section="er" onclick="showSection('er', event)">
+          <i class="fas fa-ambulance"></i><span>Emergency</span>
+        </a>
+
+        <a href="#" class="nav-item" data-section="icu" onclick="showSection('icu', event)">
+          <i class="fas fa-procedures"></i><span>ICU</span>
+        </a>
+
+        <a href="#" class="nav-item" data-section="peds" onclick="showSection('peds', event)">
+          <i class="fas fa-baby"></i><span>Pediatrics</span>
+        </a>
+
+        <a href="#" class="nav-item" data-section="obgyn" onclick="showSection('obgyn', event)">
+          <i class="fas fa-venus"></i><span>OB / GYN</span>
+        </a>
+
+        <a href="#" class="nav-item" data-section="pharmacy" onclick="showSection('pharmacy', event)">
+          <i class="fas fa-pills"></i><span>Pharmacy</span>
+        </a>
+
+        <div class="nav-section">TOOLS</div>
+
+        <a href="#" class="nav-item" data-section="favorites" onclick="showSection('favorites', event)">
+          <i class="fas fa-star"></i><span>Favorites</span>
+        </a>
+
+        <a href="#" class="nav-item" data-section="history" onclick="showSection('history', event)">
+          <i class="fas fa-history"></i><span>History</span>
+        </a>
+
+        <a href="#" class="nav-item" data-section="pdfs" onclick="showSection('pdfs', event)">
+          <i class="fas fa-file-pdf"></i><span>PDF Library</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="btn-emergency" onclick="showSection('er')">
+          <i class="fas fa-exclamation-circle"></i>
+          EMERGENCY
+        </button>
+      </div>
+    </aside>
+
+    <!-- main -->
+    <main class="main-content" id="main-content">
+      <section id="section-dashboard" class="content-section active">
+        <div class="section-header">
+          <h1>Dashboard</h1>
+          <p>Welcome back, <span id="dashboard-user-name">User</span>!</p>
+        </div>
+
+        <div class="quick-access">
+          <div class="quick-card er" onclick="showSection('er')">
+            <i class="fas fa-ambulance"></i><h3>Emergency</h3><p>Shock, Burns, RSI</p>
+          </div>
+          <div class="quick-card icu" onclick="showSection('icu')">
+            <i class="fas fa-procedures"></i><h3>ICU</h3><p>Ventilator, Fluids</p>
+          </div>
+          <div class="quick-card peds" onclick="showSection('peds')">
+            <i class="fas fa-baby"></i><h3>Pediatrics</h3><p>Weight-based, Fluids</p>
+          </div>
+          <div class="quick-card pharmacy" onclick="showSection('pharmacy')">
+            <i class="fas fa-pills"></i><h3>Pharmacy</h3><p>Dose, IV, Dilution</p>
+          </div>
+        </div>
+
+        <div class="dashboard-section">
+          <h2><i class="fas fa-star"></i> Favorites</h2>
+          <div class="calculator-grid" id="favorites-grid">
+            <p style="grid-column:1/-1;color:#9ca3af;text-align:center;">No favorites yet.</p>
+          </div>
+        </div>
+
+        <div class="dashboard-section">
+          <h2><i class="fas fa-history"></i> Recent Calculations</h2>
+          <div class="recent-list" id="recent-calculations">
+            <p style="text-align:center;color:#9ca3af;padding:1rem;">No calculation history yet.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="section-general" class="content-section">
+        <div class="section-header">
+          <h1><i class="fas fa-calculator"></i> General Medicine</h1>
+          <p>Common medical formulas and assessments</p>
+        </div>
+        <div class="calculator-grid" id="general-grid"></div>
+      </section>
+
+      <section id="section-cardio" class="content-section">
+        <div class="section-header">
+          <h1><i class="fas fa-heartbeat"></i> Cardiology</h1>
+          <p>Cardiac risk and interval calculators</p>
+        </div>
+        <div class="calculator-grid" id="cardio-grid"></div>
+      </section>
+
+      <section id="section-nephro" class="content-section">
+        <div class="section-header">
+          <h1><i class="fas fa-kidneys"></i> Nephrology</h1>
+          <p>Renal function and kidney-related tools</p>
+        </div>
+        <div class="calculator-grid" id="nephro-grid"></div>
+      </section>
+
+      <section id="section-er" class="content-section">
+        <div class="section-header emergency-header">
+          <h1><i class="fas fa-ambulance"></i> Emergency</h1>
+          <p>Emergency and acute care calculators</p>
+        </div>
+        <div class="calculator-grid" id="er-grid"></div>
+      </section>
+
+      <section id="section-icu" class="content-section">
+        <div class="section-header">
+          <h1><i class="fas fa-procedures"></i> ICU</h1>
+          <p>ICU and critical care tools</p>
+        </div>
+        <div class="calculator-grid" id="icu-grid"></div>
+      </section>
+
+      <section id="section-peds" class="content-section">
+        <div class="section-header">
+          <h1><i class="fas fa-baby"></i> Pediatrics</h1>
+          <p>Pediatric fluids and dose tools</p>
+        </div>
+        <div class="calculator-grid" id="peds-grid"></div>
+      </section>
+
+      <section id="section-obgyn" class="content-section">
+        <div class="section-header">
+          <h1><i class="fas fa-venus"></i> OB / GYN</h1>
+          <p>Obstetrics and gynecology essentials</p>
+        </div>
+        <div class="calculator-grid" id="obgyn-grid"></div>
+      </section>
+
+      <section id="section-pharmacy" class="content-section">
+        <div class="section-header">
+          <h1><i class="fas fa-pills"></i> Pharmacy</h1>
+          <p>Common pharmacy calculations</p>
+        </div>
+
+        <div class="pharmacy-tabs">
+          <button class="tab-btn active" onclick="showPharmacyTab('dosing', event)">Dosing</button>
+          <button class="tab-btn" onclick="showPharmacyTab('iv', event)">IV / Fluids</button>
+          <button class="tab-btn" onclick="showPharmacyTab('pk', event)">PK / TDM</button>
+        </div>
+
+        <div id="pharmacy-dosing" class="pharmacy-tab-content active">
+          <div class="calculator-grid" id="pharmacy-dosing-grid"></div>
+        </div>
+
+        <div id="pharmacy-iv" class="pharmacy-tab-content">
+          <div class="calculator-grid" id="pharmacy-iv-grid"></div>
+        </div>
+
+        <div id="pharmacy-pk" class="pharmacy-tab-content">
+          <div class="calculator-grid" id="pharmacy-pk-grid"></div>
+        </div>
+      </section>
+
+      <section id="section-favorites" class="content-section">
+        <div class="section-header">
+          <h1><i class="fas fa-star"></i> Favorites</h1>
+          <p>Your saved calculators</p>
+        </div>
+        <div class="calculator-grid" id="all-favorites"></div>
+      </section>
+
+      <section id="section-history" class="content-section">
+        <div class="section-header">
+          <h1><i class="fas fa-history"></i> History</h1>
+          <p>Your saved calculations</p>
+          <button class="btn-secondary" onclick="clearHistory()">Clear History</button>
+        </div>
+        <div class="history-list" id="full-history"></div>
+      </section>
+
+      <section id="section-pdfs" class="content-section">
+        <div class="section-header">
+          <h1><i class="fas fa-file-pdf"></i> PDF Library</h1>
+          <p>Upload and manage your documents</p>
+        </div>
+
+        <div class="pdf-upload-section">
+          <button class="btn-primary" onclick="openUploadModal()">
+            <i class="fas fa-upload"></i> Upload PDF / Word File
+          </button>
+        </div>
+
+        <div class="pdf-grid" id="pdf-grid">
+          <p style="grid-column:1/-1;color:#9ca3af;text-align:center;">No documents uploaded yet.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer style="text-align:center;padding:1rem;color:#64748b;background:#fff;border-top:1px solid #e5e7eb;">
+      Designed by Ayaz Ahmed
+    </footer>
+  </div>
+
+  <!-- calculator modal -->
+  <div id="calculator-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modal-title">Calculator</h2>
+        <button class="modal-close" onclick="closeCalculator()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body" id="calculator-content"></div>
+    </div>
+  </div>
+
+  <!-- upload modal -->
+  <div id="upload-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Upload Document</h2>
+        <button class="modal-close" onclick="closeUploadModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="handlePDFUpload(event)">
+          <div class="form-group">
+            <label>Title</label>
+            <input type="text" id="pdf-title" required>
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <input type="text" id="pdf-category" placeholder="e.g. Protocol, ICU, Dosing">
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea id="pdf-description" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label>File</label>
+            <input type="file" id="pdf-file" accept=".pdf,.doc,.docx" required>
+          </div>
+          <button type="submit" class="btn-primary">Upload</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="js/database.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/calculators.js"></script>
+  <script src="js/pharmacy.js"></script>
+  <script src="js/app.js"></script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
